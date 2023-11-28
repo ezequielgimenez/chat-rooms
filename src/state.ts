@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost:4000";
+const API_BASE_URL = "https://chat-rooms-ds0i.onrender.com";
 import { rtdb } from "./rtdb";
 import map from "lodash/map";
 

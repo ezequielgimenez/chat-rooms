@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.state = void 0;
-const API_BASE_URL = "http://localhost:4000";
+const API_BASE_URL = "https://chat-rooms-ds0i.onrender.com";
 const rtdb_1 = require("./rtdb");
 const map_1 = require("lodash/map");
 const state = {

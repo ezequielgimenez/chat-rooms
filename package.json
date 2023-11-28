@@ -22,7 +22,8 @@
     "dev-front": "parcel serve ./src/index.html",
     "build-front": "parcel build ./src/index.html",
     "build-back": "tsc",
-    "build": "yarn build-front && yarn build-back"
+    "build": "yarn build-front && yarn build-back",
+    "start": "node ./backend/index.js"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",

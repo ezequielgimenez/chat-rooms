@@ -15,9 +15,6 @@ app.use(express.json());
 ///inicializar CORS
 app.use(cors());
 ///
-app.get("/", (req, res) => {
-    res.send("¡Hola, Render!");
-});
 const userCollection = db_1.firestore.collection("/users");
 const roomCollection = db_1.firestore.collection("/rooms");
 //En este endpoint para registrar personas, nos mandan un email y nombre y le devolvemos el id generado

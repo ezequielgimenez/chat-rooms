@@ -19,10 +19,6 @@ app.use(express.json());
 app.use(cors());
 ///
 
-app.get("/", (req, res) => {
-  res.send("¡Hola, Render!");
-});
-
 const userCollection = firestore.collection("/users");
 const roomCollection = firestore.collection("/rooms");
 

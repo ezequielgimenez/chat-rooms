@@ -4,10 +4,10 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 const app = firebase.initializeApp({
-  apiKey: "wZouInOmqLlRyBfT8LVnyYKFofd3899VmfixmqtZ",
-  authDomain: "prueba-apx.firebaseapp.com",
+  apiKey: process.env.apiKey,
+  authDomain: process.env.databaseURL,
   databaseURL: process.env.dataBaseRTDB,
-  projectId: "prueba-apx",
+  projectId: process.env.projectId,
 });
 
 const rtdb = firebase.database();

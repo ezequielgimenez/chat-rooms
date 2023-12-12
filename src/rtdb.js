@@ -5,10 +5,10 @@ const firebase_1 = require("firebase");
 const dotenv = require("dotenv");
 dotenv.config();
 const app = firebase_1.default.initializeApp({
-    apiKey: "wZouInOmqLlRyBfT8LVnyYKFofd3899VmfixmqtZ",
-    authDomain: "prueba-apx.firebaseapp.com",
+    apiKey: process.env.apiKey,
+    authDomain: process.env.databaseURL,
     databaseURL: process.env.dataBaseRTDB,
-    projectId: "prueba-apx",
+    projectId: process.env.projectId,
 });
 const rtdb = firebase_1.default.database();
 exports.rtdb = rtdb;

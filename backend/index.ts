@@ -148,6 +148,12 @@ app.get("/rooms/:idRoom", (req, res) => {
   }
 });
 
+// En este endpoint vamos a pasarle desde el state el Idlargo de la real time actual que se esta manejando,
+//y en la colection de la real time de ese idLargo va a pushear el body que le pase el frontend {messages,from, idRealTime}
+
+// este ultimo "idRealTime" lo necesitaremos en el state para que nos pase el actual idRtdb
+// para asi poder acceder a la coleccion correspondiente e ir agregando mensajes desde el front
+//Coleccion que puede estar vacia o no vacia, dependiendo si es la primera vez que se crea el room o se accede por 2da,3ra vez etc..
 app.post("/messages", (req, res) => {
   const idRealTime = req.body.idRealTime;
   const chatRoomRef = rtdb.ref("rooms/" + idRealTime);

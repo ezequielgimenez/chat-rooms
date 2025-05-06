@@ -148,7 +148,6 @@ const state = {
     for (const callback of this.listeners) {
       callback();
     }
-    console.log("Soy el state y he cambiado", this.data);
   },
 };
 

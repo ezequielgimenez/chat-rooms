@@ -3,6 +3,10 @@ import { Router } from "@vaadin/router";
 
 export class InitForm extends HTMLElement {
   connectedCallback() {
+    const user = JSON.parse(sessionStorage.getItem("chatuser"));
+    if (user?.userId) {
+      Router.go("/select-options");
+    }
     this.render();
   }
   render() {

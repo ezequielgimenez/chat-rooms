@@ -3,10 +3,10 @@ import { getDatabase } from "firebase/database";
 import { signInAnonymously, getAuth } from "firebase/auth";
 
 const app = initializeApp({
-  apiKey: "AIzaSyAhAIGRfNvEY9dQS_xLAU4u-OaXOAnh9xE",
-  authDomain: "prueba-apx.firebaseapp.com",
-  databaseURL: "https://prueba-apx-default-rtdb.firebaseio.com",
-  projectId: "prueba-apx",
+  apiKey: import.meta.env.VITE_APIKEY,
+  authDomain: import.meta.env.VITE_AUTHDOMAIN,
+  databaseURL: import.meta.env.VITE_DATABASE_URL,
+  projectId: import.meta.env.VITE_PROJECTID,
 });
 
 const rtdb = getDatabase(app);

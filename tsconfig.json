@@ -1,11 +1,12 @@
 {
-    "compilerOptions": {
-      "module": "commonJS",
-      "target": "ESNext",
-      "moduleResolution": "node",
-      "resolveJsonModule": true,
-      "strictNullChecks": false,
-    },
-    "files": ["./backend/index.ts"],
-    "include": ["src/**/*", "back/**/*"]
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "commonJS",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "strictNullChecks": false
+  },
+  "include": ["backend/**/*"],
+  "exclude": ["node_modules"]
 }

@@ -1,6 +1,6 @@
-const API_BASE_URL = "https://chat-rooms-ds0i.onrender.com";
+const API_BASE_URL = "http://localhost:4000";
 import { rtdb } from "./rtdb";
-import map from "lodash/map";
+import { ref, onValue, push } from "firebase/database";
 
 const state = {
   data: {
@@ -8,43 +8,30 @@ const state = {
     nombre: "",
     userId: "",
     idRoom: "",
-    rtdbRoomId: "",
+    idChat: "",
     messages: [],
   },
 
   listeners: [], //array de funciones
 
-  init() {
-    // const chatRoomsRef = rtdb.ref("/chatRooms/general/chatPage");
-    // const currenState = this.getState();
-    // chatRoomsRef.on("value", (snapshot) => {
-    //   const messagesFromServer = snapshot.val();
-    //   console.log(messagesFromServer);
-    //   if (messagesFromServer) {
-    //     const messageList = map(messagesFromServer);
-    //     currenState.messages = messageList;
-    //     this.setState(currenState);
-    //   }
-    // });
-  },
-
   listenRoom() {
     const currenState = this.getState();
-    const chatRoomRef = rtdb.ref("/rooms/" + currenState.rtdbRoomId);
-    chatRoomRef.on("value", (snapshot) => {
-      const messagesFromServer = snapshot.val();
-      if (messagesFromServer) {
-        const listaDeMensajes = map(messagesFromServer);
-        currenState.messages = listaDeMensajes;
-        this.setState(currenState);
-        console.log("listenRoom() current messages", currenState.messages);
-      }
-    });
+    const chatRoomRef = ref(rtdb, "/chatRooms/" + currenState.idChat);
+    if (currenState.idChat) {
+      onValue(chatRoomRef, (snapshot) => {
+        const data = snapshot.val();
+
+        for (const key in data) {
+          const messagesFromServer = data[key];
+          currenState.messages.push(messagesFromServer);
+          this.setState(currenState);
+        }
+      });
+    }
   },
 
   getState() {
     return this.data;
-    //Te devuelve la ultima version del estado
   },
 
   setEmailAndFullName(email: string, name: string) {
@@ -54,120 +41,106 @@ const state = {
     this.setState(currenState);
   },
 
-  signUp() {
-    const currenState = this.getState();
-    if (currenState.email) {
-      fetch(API_BASE_URL + "/signup", {
+  async signUp() {
+    const currentState = this.getState();
+    if (currentState.email && currentState.nombre) {
+      const resp = await fetch(API_BASE_URL + "/signup", {
         method: "post",
         headers: {
           "content-type": "application/json",
         },
         body: JSON.stringify({
-          email: currenState.email,
-          nombre: currenState.nombre,
+          email: currentState.email,
+          nombre: currentState.nombre,
         }),
-      })
-        .then((resp) => {
-          return resp.json();
-        })
-        .then((data) => {
-          currenState.userId = data.id; /// Res User id
-          this.setState(currenState);
-        });
+      });
+      const data = await resp.json();
+      currentState.userId = data.id;
+      this.setState(currentState);
+      sessionStorage.setItem("chatuser", JSON.stringify(currentState));
+      if (!resp.ok || !data.success) {
+        alert(data.message || "No se pudo registrar el usuario");
+        return;
+      }
     } else {
-      console.error("No hay un email en el state");
+      alert(
+        "No hay un email y un nombre, por favor registrese o inicie sesión"
+      );
     }
   },
 
-  signIn(callback) {
-    const currenState = this.getState();
-    if (currenState.email) {
-      fetch(API_BASE_URL + "/signin", {
+  async signIn() {
+    const currentState = this.getState();
+    if (currentState.email) {
+      const resp = await fetch(API_BASE_URL + "/auth", {
         method: "post",
         headers: {
           "content-type": "application/json",
         },
         body: JSON.stringify({
-          email: currenState.email,
+          email: currentState.email,
         }),
-      })
-        .then((resp) => {
-          return resp.json();
-        })
-        .then((data) => {
-          currenState.userId = data.id; /// Res User id
-          this.setState(currenState);
-          callback();
-        });
+      });
+      const data = await resp.json();
+      currentState.userId = data.id;
+      this.setState(currentState);
+      sessionStorage.setItem("chatuser", JSON.stringify(currentState));
     } else {
-      console.error("No hay un email en el state");
+      alert("No hay un email");
     }
   },
 
-  generateNewRoom(callback?) {
-    const currenState = this.getState();
-    if (currenState.userId) {
-      fetch(API_BASE_URL + "/rooms", {
+  async generateNewRoom() {
+    const currentState = this.getState();
+    if (currentState.userId) {
+      const resp = await fetch(API_BASE_URL + "/rooms", {
         method: "post",
         headers: {
           "content-type": "application/json",
         },
         body: JSON.stringify({
-          userId: currenState.userId,
+          userId: currentState.userId,
         }),
-      })
-        .then((resp) => {
-          return resp.json();
-        })
-        .then((data) => {
-          currenState.idRoom = data.id; /// Res RoomId
-          if (callback) {
-            callback();
-          }
-        });
+      });
+      const data = await resp.json();
+      currentState.idRoom = data.id;
+      this.setState(currentState);
+      sessionStorage.setItem("chatuser", JSON.stringify(currentState));
     } else {
-      console.error("No hay userId");
+      alert("No hay user id por favor inicia sesion");
     }
   },
 
-  getToRoom(callback?) {
-    const currenState = this.getState();
-    const idRoom = currenState.idRoom;
-    fetch(API_BASE_URL + "/rooms/" + idRoom + "?userId=" + currenState.userId)
+  async getToRoom() {
+    const currentState = this.getState();
+    const idRoom = currentState.idRoom;
+    await fetch(
+      API_BASE_URL + "/rooms/" + idRoom + "?userId=" + currentState.userId
+    )
       .then((resp) => {
         return resp.json();
       })
       .then((data) => {
-        console.log("rtdb id:", data.rtdbID);
-        currenState.rtdbRoomId = data.rtdbID; /// Res rtbdID
-        this.setState(currenState);
-        this.listenRoom();
+        currentState.idChat = data.id;
+        this.setState(currentState);
+        sessionStorage.setItem("chatuser", JSON.stringify(currentState));
       });
-    if (callback) {
-      callback();
-    }
   },
 
-  pushMessage(message: string) {
-    const currenState = this.getState();
-    const nameDelState = this.data.nombre;
-    fetch(API_BASE_URL + "/messages", {
-      method: "post",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        from: nameDelState,
-        mensaje: message,
-        idRealTime: currenState.rtdbRoomId,
-      }),
-    });
+  pushMessage(mensaje: string) {
+    const currentState = this.getState();
+    if (currentState.idChat) {
+      const chatRoomRef = ref(rtdb, "/chatRooms/" + currentState.idChat);
+      push(chatRoomRef, {
+        from: currentState.nombre,
+        mensaje,
+      });
+    }
   },
 
   suscribe(callback: (any) => any) {
     this.listeners.push(callback);
     console.log("Todos las funciones dentro de listeners", this.listeners);
-    // te avisa cuando algun componente cambia el estado
   },
 
   setState(newState) {

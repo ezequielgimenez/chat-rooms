@@ -1,160 +1,161 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const express = require("express");
-const cors = require("cors");
+const express_1 = __importDefault(require("express"));
 const db_1 = require("./db");
+const cors_1 = __importDefault(require("cors"));
 const uuid_1 = require("uuid");
-const dotenv = require("dotenv");
-//vars env
-dotenv.config();
+const dotenv_1 = __importDefault(require("dotenv"));
+const path_1 = __importDefault(require("path"));
+dotenv_1.default.config();
 const port = process.env.PORT || 4000;
 //
-//Inicializar app de express
-const app = express();
-app.use(express.json());
-///inicializar CORS
-app.use(cors());
-///
-const userCollection = db_1.firestore.collection("/users");
-const roomCollection = db_1.firestore.collection("/rooms");
-//En este endpoint para registrar personas, nos mandan un email y nombre y le devolvemos el id generado
 //
-//signun()
-app.post("/signup", function (req, res) {
+const app = (0, express_1.default)();
+app.use(express_1.default.json());
+app.use((0, cors_1.default)());
+///
+const userCollection = db_1.db.collection("users");
+const roomCollection = db_1.db.collection("rooms");
+app.post("/signup", async function (req, res) {
     const email = req.body.email;
     const nombre = req.body.nombre;
-    userCollection
-        .where("email", "==", email)
-        .get()
-        .then((searchRes) => {
-        if (searchRes.empty) {
-            userCollection
-                .add({
+    try {
+        const userRefDoc = await userCollection.where("email", "==", email).get();
+        if (userRefDoc.empty) {
+            const docUser = await userCollection.add({
                 email,
                 nombre,
-            })
-                .then((newUserReferencia) => {
-                res.json({
-                    id: newUserReferencia.id,
-                    new: true,
-                });
+            });
+            res.status(201).json({
+                success: true,
+                id: docUser.id,
             });
         }
         else {
             res.json({
-                message: "Ya se encuentra registrado",
-            });
-            console.log("Ya se encuentra registrado");
-        }
-    });
-});
-//En este endpoint en base a un email registrado nos devuelve el userId de ese user para que nosotros mismos en el state
-//podamos tener ese dato y guardarloen el currentState.userId
-//signin()
-app.post("/signin", (req, res) => {
-    const email = req.body.email;
-    userCollection
-        .where("email", "==", email)
-        .get()
-        .then((searchRes) => {
-        if (searchRes.empty) {
-            res.status(404).json({
-                message: "not found",
+                success: false,
+                message: "User already exist",
             });
         }
-        else {
-            res.json({
-                id: searchRes.docs[0].id,
-            });
-        }
-    });
-});
-/////////////////////////-------------Rooms
-//generateToRoom()
-app.post("/rooms", (req, res) => {
-    //Nos pide el userId que en teoria esta registrado en la base de datos, y lo buscamos en la collection "users"
-    //si existe creo una ref rooms en la real time para establecerle el id del user owner y un array Messages[]
-    const userId = req.body.userId;
-    userCollection
-        .doc(userId)
-        .get()
-        .then((doc) => {
-        if (doc.exists) {
-            const roomRef = db_1.rtdb.ref("rooms/" + (0, uuid_1.v4)());
-            roomRef
-                .push({
-                messages: [],
-                owner: userId,
-            })
-                .then(() => {
-                //creamos una colectionRooms en firestore y le seteamos un id corto y uno largo
-                // Y con el id corto creamos un nuevo doc de la (collection rooms de firestore) para que las personas se pasen ese id
-                //y con el id largo que nos genero el uuidv4() lo usamos para comunicarnos con la sala roomRef(idlargo)
-                const idRoomLong = roomRef.key; ///uuidv4()
-                const idRoom = 1000 + Math.floor(Math.random() * 999);
-                roomCollection
-                    .doc(idRoom.toString())
-                    .set({
-                    rtdbID: idRoomLong,
-                })
-                    //Y simplemente vamos a responder con el id corto, (id del documento de la rtdb)
-                    // le ponemos como propiedad "id" luego en el state al momento de responder le decimos que currentState.idRoom = id
-                    .then(() => {
-                    res.json({
-                        id: idRoom,
-                    });
-                });
-            });
-        }
-    });
-});
-//getToRoom()
-app.get("/rooms/:idRoom", (req, res) => {
-    const userId = req.query.userId;
-    const idRoom = req.params.idRoom;
-    //como query es el userID,  la parte de la url que esta despues del "?=" se recibe dentro de express como un objeto "query"
-    //const query = new URLSearchParams();
-    //query.append('userID', '21312381273sdajdsajbvP');
-    //y params como : const idRoom = '1732';
-    if (userId !== undefined) {
-        userCollection
-            .doc(userId.toString())
-            .get()
-            .then((doc) => {
-            //Dentro de userCollection si existe el UserId como documento el entonces muestra los datos de collectionRoom de fireStore
-            //Responde con el idlargo (idRtdb:) y con ese id lo usamos para entrar a una sala de la realtime roomRef(idlargo)
-            if (doc.exists) {
-                roomCollection
-                    .doc(idRoom)
-                    .get()
-                    .then((snap) => {
-                    const data = snap.data();
-                    res.json(data);
-                });
-            }
-            else {
-                res.status(401).json({
-                    message: "no existe",
-                });
-            }
+    }
+    catch (error) {
+        res.json({
+            success: false,
+            message: error.message,
         });
     }
 });
-// En este endpoint vamos a pasarle desde el state el Idlargo de la real time actual que se esta manejando,
-//y en la colection de la real time de ese idLargo va a pushear el body que le pase el frontend {messages,from, idRealTime}
-// este ultimo "idRealTime" lo necesitaremos en el state para que nos pase el actual idRtdb
-// para asi poder acceder a la coleccion correspondiente e ir agregando mensajes desde el front
-//Coleccion que puede estar vacia o no vacia, dependiendo si es la primera vez que se crea el room o se accede por 2da,3ra vez etc..
-app.post("/messages", (req, res) => {
-    const idRealTime = req.body.idRealTime;
-    const chatRoomRef = db_1.rtdb.ref("rooms/" + idRealTime);
-    chatRoomRef.push(req.body, () => {
-        res.json("Salio todo bien");
-    });
+app.post("/auth", async (req, res) => {
+    try {
+        const email = req.body.email;
+        const userRefDoc = await userCollection.where("email", "==", email).get();
+        if (userRefDoc.empty) {
+            res.status(401).json({
+                success: false,
+                message: "User no existe con ese email",
+            });
+        }
+        else {
+            res.status(200).json({
+                success: true,
+                id: userRefDoc.docs[0].id,
+            });
+        }
+    }
+    catch (error) {
+        res.json({
+            success: false,
+            message: error.message,
+        });
+    }
 });
-app.use(express.static("dist"));
+/////////////////////////-------------Rooms
+//generateToRoom()
+app.post("/rooms", async (req, res) => {
+    const userId = req.body.userId;
+    try {
+        if (userId) {
+            const userDoc = await userCollection.doc(userId).get();
+            if (userDoc.exists) {
+                const chatRoomRef = db_1.rtdb.ref("/chatRooms/" + (0, uuid_1.v4)());
+                chatRoomRef.push({
+                    from: "",
+                    message: "",
+                });
+                const idCorto = 1000 + Math.floor(Math.random() * 999);
+                const roomDoc = await roomCollection.doc(idCorto.toString());
+                roomDoc.set({
+                    idSala: chatRoomRef.key,
+                });
+                res.json({
+                    success: true,
+                    id: roomDoc.id,
+                });
+            }
+            else {
+                res.status(404).json({
+                    success: false,
+                    message: "User not found",
+                });
+            }
+        }
+        else {
+            res.json({
+                success: false,
+                message: "User no contained userId",
+            });
+        }
+    }
+    catch (error) {
+        res.json({
+            success: false,
+            message: error.message,
+        });
+    }
+});
+//getToRoom()
+app.get("/rooms/:idRoom", async (req, res) => {
+    const { idRoom } = req.params;
+    const { userId } = req.query;
+    if (userId) {
+        const docUser = await userCollection.doc(userId.toString()).get();
+        if (docUser.exists) {
+            const docRoomRef = await roomCollection.doc(idRoom).get();
+            if (docRoomRef.exists) {
+                const dataDoc = await docRoomRef.data();
+                res.json({
+                    success: true,
+                    message: "Chat Encontrado",
+                    id: dataDoc.idSala,
+                });
+            }
+            else {
+                res.status(404).json({
+                    success: false,
+                    message: "Chat room not found",
+                });
+            }
+        }
+        else {
+            res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+    }
+    else {
+        res.json({
+            success: false,
+            message: "No hay un userId, logueate o registrate",
+        });
+    }
+});
+app.use(express_1.default.static(path_1.default.resolve(__dirname, "../src/dist")));
 app.get("*", (req, res) => {
-    res.sendFile(__dirname + "/dist/index.html");
+    res.sendFile(path_1.default.resolve(__dirname, "../src/dist", "index.html"));
 });
 app.listen(port, () => {
     console.log("Escuchando app en el puerto:", port);

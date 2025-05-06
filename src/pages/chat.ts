@@ -1,40 +1,22 @@
+import { Router } from "@vaadin/router";
 import { state } from "../state";
-
-type Mensajes = {
-  from: string;
-  mensaje: string;
-};
+import { rtdb } from "../rtdb";
+import { ref, onValue } from "firebase/database";
 
 export class Chat extends HTMLElement {
   connectedCallback() {
-    //Una vez que este conectado al dom, cada vez que haya un cambio en el state ejecuta esto
-    state.suscribe(() => {
-      const currenState = state.getState();
-      this.arrayMensajes = currenState.messages;
-      // console.log("mensajes connectedCallback", currenState.messages);
-      this.render();
-    });
+    const user = JSON.parse(sessionStorage.getItem("chatuser"));
+    if (user) {
+      state.setState(user);
+    }
+    if (!user?.idChat) {
+      alert("No estás en ninguna sala. Creá una o pedí una válida.");
+      Router.go("/");
+    }
     this.render();
-
-    ///
-    ///
   }
-  sendMessage() {
-    const currenState = state.getState();
-    console.log("dato del state rtdbRoom", currenState.rtdbRoomId);
-    const myForm = this.querySelector(".my-form");
-    myForm?.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const target = e.target as any;
-      console.log("Datos del input chat", target.chat.value);
-      state.pushMessage(target.chat.value);
-      target.chat.value = "";
-    });
-  }
-  arrayMensajes: Mensajes[] = [];
 
   render() {
-    console.log("array de mensajes", this.arrayMensajes);
     const currenState = state.getState();
     this.innerHTML = `
         <div>
@@ -48,42 +30,7 @@ export class Chat extends HTMLElement {
 
             <form class="my-form">
               <div class="contenedor-chat">
-              ${this.arrayMensajes
-                .map((m) => {
-                  if (m.from !== undefined) {
-                    const divUserContenedor = document.createElement("div");
-                    const RecepContenedor = document.createElement("div");
-                    //Div contenido del mensaje
-                    const divMessage = document.createElement("div");
-                    //agregando clases a los contenedores
-                    divUserContenedor.classList.add("contenedor-mensajes");
-                    RecepContenedor.classList.add("contenedor-recibed");
-                    //
-                    if (m.from === currenState.nombre) {
-                      divMessage.classList.add("contenedor-me");
-                      divMessage.innerHTML = `
-                      <div>
-                         ${m.from}:${m.mensaje}
-                      </div>
-                      `;
-                      divUserContenedor.appendChild(divMessage);
-                      return divUserContenedor.outerHTML;
-                      ///
-                    } else {
-                      divMessage.classList.add("contenedor-recep");
-                      divMessage.innerHTML = `
-                      <div>
-                         ${m.from}:${m.mensaje}
-                     </div>
-                      `;
-                      RecepContenedor.appendChild(divMessage);
-                      return RecepContenedor.outerHTML;
-                    } //obtiene el fragmento HTML serializado que describe el elemento incluyendo sus descendientes
-                  } else {
-                    return "";
-                  }
-                })
-                .join("")}
+
               </div>
               <input class="my-input" type="text" name="chat">
               <button>Enviar</button>
@@ -91,34 +38,109 @@ export class Chat extends HTMLElement {
         </div>
 
         <style>
+
+
+     body {
+        display: flex;
+        flex-direction: column;
+        width:600px;
+        font-family: 'Poppins', sans-serif;
+        background-color: #121212;
+        color:white;
+        overflow-y: auto; 
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 10px; 
+        box-shadow: 0 2px 10px rgba(246, 171, 22, 0.1); /* Sombra sutil */
+      }
+      h1,h3{
+        color:rgb(230, 231, 231);
+      }
+      input {
+        width: 100%;
+        height: 35px;
+        border-radius: 8px;
+        margin-top: 10px;
+        border: 2px solid #ccc; 
+        font-size: 14px; 
+        outline: none; 
+        transition: border-color 0.3s, box-shadow 0.3s; 
+      }
+
+      input:focus {
+        border-color:rgb(86, 255, 235);
+        box-shadow: 0 0 0 4px rgba(0, 121, 107, 0.2);
+      }
+
+      button {
+        background-color: #00ffa4;
+        color: #000;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+        width: 100%;
+        margin-bottom: 1rem;
+        margin-top:10px;
+      }
         .contenedor-chat{
-            border: solid 3px black;
             overflow-y:scroll;
             height:300px;
+            background-color:rgb(255, 255, 255);
         }
-
-        .contenedor-recep{
-          display:inline-block;
-          margin: 10px 0; /* Espaciado entre los mensajes */
-          padding: 5px; /* Espaciado interno de los mensajes */
-          background-color: #D8D8D8; /* Color de fondo de los mensajes */
-          border: 1px solid #cccccc; /* Borde de los mensajes */
-          border-radius: 5px; /* Bordes redondeados */
-        }
-
-        .contenedor-me{
-          display:inline-block;
-          margin-left:90%;
-          
-          padding: 5px; /* Espaciado interno de los mensajes */
-          background-color: #B9E97C; /* Color de fondo de los mensajes */
-          border: 1px solid #cccccc; /* Borde de los mensajes */
-          border-radius: 5px; /* Bordes redondeados */
-        }
-
         </style>
     `;
-    this.sendMessage();
+    const containerChat = this.querySelector(
+      ".contenedor-chat"
+    ) as HTMLDivElement;
+    const currentState = state.getState();
+    const chatRooms = ref(rtdb, "/chatRooms/" + currenState.idChat);
+    onValue(chatRooms, (snapshot) => {
+      if (snapshot.exists()) {
+        containerChat.innerHTML = ""; // limpia antes
+
+        const data = snapshot.val();
+        for (const key in data) {
+          const message = data[key];
+          if (message.from && message.mensaje) {
+            const div = document.createElement("div");
+            if (message.from !== currentState.nombre) {
+              div.style.backgroundColor = "#f5b642";
+            } else {
+              div.style.backgroundColor = "#42f58a";
+            }
+            div.innerHTML = `
+                   <p class="nombre">${message.from}</p>
+                   <div class="mensaje">${message.mensaje}</div>
+                <style>
+                    .nombre{
+                      font-size: 25px;
+                      font-family: 'Segoe UI', sans-serif;
+                      color:#393e4a;
+                    }
+                    .mensaje{
+                      font-size: 18px;
+                      font-family: 'Segoe UI', sans-serif;
+                   }
+                 </style>
+                `;
+            containerChat.appendChild(div);
+            containerChat.scrollTop = containerChat.scrollHeight;
+          }
+        }
+      }
+    });
+
+    const myForm = this.querySelector(".my-form");
+    myForm?.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const target = e.target as any;
+      const mensajeNuevo = target.chat.value;
+      state.pushMessage(mensajeNuevo);
+      target.chat.value = "";
+    });
   }
 }
 

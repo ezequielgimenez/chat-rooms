@@ -3,38 +3,29 @@
   "version": "1.0.0",
   "license": "MIT",
   "dependencies": {
-    "@types/cors": "^2.8.17",
-    "@types/uuid": "^9.0.7",
     "@vaadin/router": "^1.7.5",
     "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
+    "dotenv": "^16.5.0",
     "express": "^4.18.2",
-    "firebase": "8.7.1",
-    "firebase-admin": "^11.11.1",
-    "firestore": "^1.1.6",
+    "firebase": "^11.6.1",
+    "firebase-admin": "^13.3.0",
     "lodash": "^4.17.21",
-    "ts-node": "^10.9.1",
     "typescript": "^5.3.2",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "vite": "^6.3.4"
   },
   "scripts": {
     "dev": "nodemon --watch ./backend/index.ts --exec ts-node ./backend/index.ts",
-    "dev-front": "parcel serve ./src/index.html",
-    "build-front": "parcel build ./src/index.html",
+    "dev-front": "vite",
+    "build-front": "vite build",
     "build-back": "tsc",
     "build": "yarn build-front && yarn build-back",
     "start": "node ./backend/index.js"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.17",
     "@types/node": "^20.10.0",
-    "buffer": "^5.5.0||^6.0.0",
-    "crypto-browserify": "^3.12.0",
-    "events": "^3.1.0",
-    "nodemon": "^3.0.1",
-    "os-browserify": "^0.3.0",
-    "parcel": "^2.10.3",
-    "path-browserify": "^1.0.0",
-    "process": "^0.11.10",
-    "stream-browserify": "^3.0.0"
+    "@types/uuid": "^9.0.7",
+    "nodemon": "^3.1.10"
   }
 }

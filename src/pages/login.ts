@@ -21,7 +21,7 @@ export class InitForm extends HTMLElement {
              </div>
              <input class="my-input" type="text" name="nombre">
 
-             <div>
+             <div class="contenedor-button">
                 <button class="my-button">Comenzar</button>
              </div>
         </form>
@@ -72,6 +72,9 @@ export class InitForm extends HTMLElement {
 
     `;
     const form = this.querySelector(".my-form");
+    const contenedorButton = this.querySelector(
+      ".contenedor-button"
+    ) as HTMLDivElement;
 
     form?.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -80,6 +83,19 @@ export class InitForm extends HTMLElement {
       const name = target.nombre.value;
 
       state.setEmailAndFullName(email, name);
+      const div = document.createElement("div") as HTMLDivElement;
+      div.style.margin = "10px 0";
+      div.innerHTML = `
+          <p>Cargando..</p>
+          <style>
+            p{
+              font-size:15px;
+              text-align:center;
+            }
+          </style>
+        `;
+      contenedorButton.appendChild(div);
+
       await state.signIn();
       Router.go("/select-options");
     });

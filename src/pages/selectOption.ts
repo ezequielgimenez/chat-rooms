@@ -37,7 +37,7 @@ export class SelectPage extends HTMLElement {
                 <input type="text" name="campo" class="campo">
              </div>
 
-             <div>
+             <div class="contenedor-button">
                 <button class="my-button">Comenzar</button>
              </div>
         </form>
@@ -111,6 +111,23 @@ export class SelectPage extends HTMLElement {
     form?.addEventListener("submit", async (e) => {
       e.preventDefault();
       const target = e.target as any;
+
+      const contenedorButton = this.querySelector(
+        ".contenedor-button"
+      ) as HTMLDivElement;
+
+      const div = document.createElement("div") as HTMLDivElement;
+      div.style.margin = "10px 0";
+      div.innerHTML = `
+          <p>Cargando..</p>
+          <style>
+            p{
+              font-size:15px;
+              text-align:center;
+            }
+          </style>
+        `;
+      contenedorButton.appendChild(div);
 
       const valueSelect = selectOptions.value;
       const inputIdRoom = target.campo.value;

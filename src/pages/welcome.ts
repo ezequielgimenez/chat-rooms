@@ -1,5 +1,6 @@
 import { Router } from "@vaadin/router";
 import { state } from "../state";
+import { create } from "domain";
 
 export class initWelcome extends HTMLElement {
   connectedCallback() {
@@ -99,7 +100,7 @@ export class initWelcome extends HTMLElement {
             <label>Nombre</label>
         </div>
         <input type="text" name="nombre">
-        <div>
+        <div class="contenedor-button">
         <button class="my-button">Registrarse</button>
         </div>
 
@@ -142,17 +143,30 @@ export class initWelcome extends HTMLElement {
     </form>
 `;
     const formRender = this.querySelector(".my-form") as HTMLFormElement;
-
+    const contenedorButton = this.querySelector(
+      ".contenedor-button"
+    ) as HTMLDivElement;
     formRender?.addEventListener("submit", async (e) => {
       e.preventDefault();
 
       const target = e.target as any;
       const email = target.email.value;
       const name = target.nombre.value;
-      console.log("email", email);
-      console.log("email", name);
       state.setEmailAndFullName(email, name);
+      const div = document.createElement("div") as HTMLDivElement;
+      div.style.margin = "10px 0";
+      div.innerHTML = `
+        <p>Cargando..</p>
+        <style>
+          p{
+            font-size:15px;
+            text-align:center;
+          }
+        </style>
+      `;
+      contenedorButton.appendChild(div);
       await state.signUp();
+
       Router.go("/signIn");
     });
   }

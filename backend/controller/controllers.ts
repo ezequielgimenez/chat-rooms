@@ -43,27 +43,31 @@ export const createUser = async (req: Request, res: Response) => {
 };
 
 export const authToken = async (req: Request, res: Response) => {
-  const { email, password } = req.body;
-  const user = await modelUser.findOne({ email }).lean();
-  if (!user) {
-    return res.status(404).json({
-      success: false,
-      message: "No hay un usuario registrado con ese email",
-    });
-  } else {
-    const passwordHash = await bcrypt.compare(password, user.password);
-    if (!passwordHash) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Contraseña incorrecta" });
+  try {
+    const { email, password } = req.body;
+    const user = await modelUser.findOne({ email }).lean();
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "No hay un usuario registrado con ese email",
+      });
+    } else {
+      const passwordHash = await bcrypt.compare(password, user.password);
+      if (!passwordHash) {
+        return res
+          .status(401)
+          .json({ success: false, message: "Contraseña incorrecta" });
+      }
+      const id = user._id.toString();
+      const token = generateToken(id);
+      return res.status(200).json({
+        success: true,
+        message: "Inicio de session correctamente",
+        token,
+      });
     }
-    const id = user._id.toString();
-    const token = generateToken(id);
-    return res.status(200).json({
-      success: true,
-      message: "Inicio de session correctamente",
-      token,
-    });
+  } catch (error) {
+    return res.status(500).json({ success: true, message: error.message });
   }
 };
 

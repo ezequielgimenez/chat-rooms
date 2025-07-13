@@ -16,13 +16,12 @@ app.use(cors());
 ///
 
 const url = process.env.URL_MONGO;
-console.log("url", URL);
 
 mongoose.set("strictQuery", false);
 mongoose.Promise = global.Promise;
 
 mongoose
-  .connect(url)
+  .connect("mongodb+srv://ezequiel:123456789xd@cluster0.gtudalp.mongodb.net/")
   .then(() => console.log("Conectado a la base de datos"))
   .catch((error) => console.log(error));
 

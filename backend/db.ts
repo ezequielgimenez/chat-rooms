@@ -5,6 +5,8 @@ import { getDatabase } from "firebase-admin/database"; // el /database es de la 
 import dotenv from "dotenv";
 dotenv.config();
 
+
+
 const serviceAccount = JSON.parse(process.env.FIREBASE_ACCOUNT);
 
 const app = initializeApp({

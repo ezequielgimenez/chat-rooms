@@ -5,6 +5,7 @@ interface ImportMetaEnv {
   readonly VITE_databaseURL: string;
   readonly VITE_dataBaseRTDB: string;
   readonly VITE_projectId: string;
+  readonly VITE_URL: string;
 }
 
 interface ImportMeta {

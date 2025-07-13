@@ -19,7 +19,7 @@ export class Chat extends HTMLElement {
   render() {
     const currenState = state.getState();
     this.innerHTML = `
-        <div>
+        <div class="chat">
             <div class="contenedor-titulo">
                 <h1 class="titulo">Chat</h1>
 
@@ -41,9 +41,7 @@ export class Chat extends HTMLElement {
 
 
      body {
-        display: flex;
-        flex-direction: column;
-        width:600px;
+        width:100%;
         font-family: 'Poppins', sans-serif;
         background-color: #121212;
         color:white;
@@ -53,6 +51,14 @@ export class Chat extends HTMLElement {
         border-radius: 10px; 
         box-shadow: 0 2px 10px rgba(246, 171, 22, 0.1); /* Sombra sutil */
       }
+        
+      .chat{
+        display:flex;
+        flex-direction:column;
+        justify-content:center;
+        align-items:center;
+      }
+
       h1,h3{
         color:rgb(230, 231, 231);
       }
@@ -96,6 +102,7 @@ export class Chat extends HTMLElement {
       ".contenedor-chat"
     ) as HTMLDivElement;
     const currentState = state.getState();
+
     const chatRooms = ref(rtdb, "/chatRooms/" + currenState.idChat);
     onValue(chatRooms, (snapshot) => {
       if (snapshot.exists()) {

@@ -1,9 +1,11 @@
 import express from "express";
+import mongoose from "mongoose";
 import { db, rtdb } from "./db";
 import cors from "cors";
 import { v4 as uuidv4 } from "uuid";
 import dotenv from "dotenv";
 import path from "path";
+import { routes } from "./routes/route";
 
 dotenv.config();
 const port = process.env.PORT || 4000;
@@ -17,56 +19,29 @@ app.use(cors());
 
 const userCollection = db.collection("users");
 const roomCollection = db.collection("rooms");
+const url = process.env.URL_MONGO;
+console.log("url", URL);
 
-app.post("/signup", async function (req, res) {
-  const email = req.body.email;
-  const nombre = req.body.nombre;
-  try {
-    const userRefDoc = await userCollection.where("email", "==", email).get();
-    if (userRefDoc.empty) {
-      const docUser = await userCollection.add({
-        email,
-        nombre,
-      });
-      res.status(201).json({
-        success: true,
-        id: docUser.id,
-      });
-    } else {
-      res.json({
-        success: false,
-        message: "User already exist",
-      });
-    }
-  } catch (error) {
-    res.json({
-      success: false,
-      message: error.message,
-    });
-  }
+mongoose.set("strictQuery", false);
+mongoose.Promise = global.Promise;
+
+mongoose
+  .connect(url)
+  .then(() => console.log("Conectado a la base de datos"))
+  .catch((error) => console.log(error));
+
+////
+
+app.use(routes);
+
+app.use(express.static(path.resolve(__dirname, "../src/dist")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.resolve(__dirname, "../src/dist", "index.html"));
 });
 
-app.post("/auth", async (req, res) => {
-  try {
-    const email = req.body.email;
-    const userRefDoc = await userCollection.where("email", "==", email).get();
-    if (userRefDoc.empty) {
-      res.status(401).json({
-        success: false,
-        message: "User no existe con ese email",
-      });
-    } else {
-      res.status(200).json({
-        success: true,
-        id: userRefDoc.docs[0].id,
-      });
-    }
-  } catch (error) {
-    res.json({
-      success: false,
-      message: error.message,
-    });
-  }
+app.listen(port, () => {
+  console.log("Escuchando app en el puerto:", port);
 });
 
 /////////////////////////-------------Rooms
@@ -145,14 +120,4 @@ app.get("/rooms/:idRoom", async (req, res) => {
       message: "No hay un userId, logueate o registrate",
     });
   }
-});
-
-app.use(express.static(path.resolve(__dirname, "../src/dist")));
-
-app.get("*", (req, res) => {
-  res.sendFile(path.resolve(__dirname, "../src/dist", "index.html"));
-});
-
-app.listen(port, () => {
-  console.log("Escuchando app en el puerto:", port);
 });

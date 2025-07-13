@@ -1,6 +1,5 @@
 import { Router } from "@vaadin/router";
 import { state } from "../state";
-import { create } from "domain";
 
 export class initWelcome extends HTMLElement {
   connectedCallback() {
@@ -24,7 +23,7 @@ export class initWelcome extends HTMLElement {
   }
   registro() {
     this.innerHTML = `
-    <h1>Bievenido</h1>   
+    <h1>Bienvenido</h1>   
     
     <form class="registro-form">
       <button class="my-button">Registrarse</button>
@@ -43,6 +42,7 @@ export class initWelcome extends HTMLElement {
         align-items: center;
         justify-content: center;
         min-height: 100vh;
+        padding: 0 20px;
       }
 
       .welcome-container {
@@ -94,17 +94,24 @@ export class initWelcome extends HTMLElement {
     <form class="my-form">
         <div>
              <label>Email</label>
+             <input type="text" name="email">
         </div>
-        <input type="text" name="email">
+
         <div>
             <label>Nombre</label>
+            <input type="text" name="nombre">
         </div>
-        <input type="text" name="nombre">
+
+        <div> 
+          <label>Contraseña</label>
+          <input type="password" name="password"
+        </div>
+
         <div class="contenedor-button">
         <button class="my-button">Registrarse</button>
         </div>
 
-        <style>
+    <style>
      body {
         font-family: 'Poppins', sans-serif;
         background-color: #121212;
@@ -152,22 +159,27 @@ export class initWelcome extends HTMLElement {
       const target = e.target as any;
       const email = target.email.value;
       const name = target.nombre.value;
-      state.setEmailAndFullName(email, name);
-      const div = document.createElement("div") as HTMLDivElement;
-      div.style.margin = "10px 0";
-      div.innerHTML = `
-        <p>Cargando..</p>
-        <style>
-          p{
-            font-size:15px;
-            text-align:center;
-          }
-        </style>
-      `;
-      contenedorButton.appendChild(div);
-      await state.signUp();
+      const password = target.password.value;
+      if (!email || !name || !password) {
+        alert("No dejes campos sin completar");
+      } else {
+        state.setEmailAndFullName(email, name, password);
+        const div = document.createElement("div") as HTMLDivElement;
+        div.style.margin = "10px 0";
+        div.innerHTML = `
+          <p>Cargando..</p>
+          <style>
+            p{
+              font-size:15px;
+              text-align:center;
+            }
+          </style>
+        `;
+        contenedorButton.appendChild(div);
+        await state.signUp();
 
-      Router.go("/signIn");
+        Router.go("/signIn");
+      }
     });
   }
 }

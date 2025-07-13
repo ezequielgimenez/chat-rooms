@@ -18,12 +18,12 @@ export class InitForm extends HTMLElement {
         <form class="my-form">
             <div>
                 <label>Email</label>
+                <input class="my-input" type="email" name="email">
             </div>
-            <input class="my-input" type="email" name="email">
             <div>
-                <label>Tu nombre</label>
+                <label>Password</label>
+                <input class="my-input" type="password" name="password">
              </div>
-             <input class="my-input" type="text" name="nombre">
 
              <div class="contenedor-button">
                 <button class="my-button">Comenzar</button>
@@ -84,12 +84,14 @@ export class InitForm extends HTMLElement {
       e.preventDefault();
       const target = e.target as any;
       const email = target.email.value;
-      const name = target.nombre.value;
-
-      state.setEmailAndFullName(email, name);
-      const div = document.createElement("div") as HTMLDivElement;
-      div.style.margin = "10px 0";
-      div.innerHTML = `
+      const password = target.password.value;
+      if (!email || !password) {
+        alert("No dejes campos sin completar");
+      } else {
+        state.setEmailAndFullName(email, "", password);
+        const div = document.createElement("div") as HTMLDivElement;
+        div.style.margin = "10px 0";
+        div.innerHTML = `
           <p>Cargando..</p>
           <style>
             p{
@@ -98,10 +100,11 @@ export class InitForm extends HTMLElement {
             }
           </style>
         `;
-      contenedorButton.appendChild(div);
+        contenedorButton.appendChild(div);
 
-      await state.signIn();
-      Router.go("/select-options");
+        await state.signIn();
+        Router.go("/select-options");
+      }
     });
   }
 }

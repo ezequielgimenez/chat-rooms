@@ -33,8 +33,8 @@ export class SelectPage extends HTMLElement {
              <div class="div-display" style="display:none;">
                 <div>
                     <label>Room id</label>
+                    <input type="text" name="campo" class="campo">
                 </div>
-                <input type="text" name="campo" class="campo">
              </div>
 
              <div class="contenedor-button">
@@ -99,12 +99,8 @@ export class SelectPage extends HTMLElement {
       const valueSelect = selectOptions.value;
       if (valueSelect === "opcion2") {
         divDisplay.style.display = "block";
-        campo.disabled = false;
-        campo.value = "";
       } else {
         divDisplay.style.display = "none";
-        campo.value = "";
-        campo.disabled = true;
       }
     });
 
@@ -132,6 +128,8 @@ export class SelectPage extends HTMLElement {
       const valueSelect = selectOptions.value;
       const inputIdRoom = target.campo.value;
       if (valueSelect === "opcion1" && currenState.userId) {
+        console.log("opcion 1 crear");
+
         await state.generateNewRoom();
 
         await state.getToRoom();

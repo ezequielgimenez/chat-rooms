@@ -72,21 +72,22 @@ const state = {
       const data = await resp.json();
       if (!data.success) {
         alert("No hay un usuario registrado con ese email");
-      }
-      currentState.token = data.token;
-      if (currentState.token) {
-        const getUser = await fetch(API_BASE_URL + "/users", {
-          headers: {
-            Authorization: `bearer ${currentState.token}`,
-          },
-        });
-        const user = await getUser.json();
-        currentState.userId = user.data._id;
-        currentState.nombre = user.data.name;
-        this.setState(currentState);
-        sessionStorage.setItem("chatuser", JSON.stringify(currentState));
       } else {
-        alert("Ocurrio un error al obtener data del user");
+        currentState.token = data.token;
+        if (currentState.token) {
+          const getUser = await fetch(API_BASE_URL + "/users", {
+            headers: {
+              Authorization: `bearer ${currentState.token}`,
+            },
+          });
+          const user = await getUser.json();
+          currentState.userId = user.data._id;
+          currentState.nombre = user.data.name;
+          this.setState(currentState);
+          sessionStorage.setItem("chatuser", JSON.stringify(currentState));
+        } else {
+          alert("Ocurrio un error al obtener data del user");
+        }
       }
     } else {
       alert("No hay un email");

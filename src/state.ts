@@ -86,7 +86,7 @@ const state = {
           this.setState(currentState);
           sessionStorage.setItem("chatuser", JSON.stringify(currentState));
         } else {
-          alert("Ocurrio un error al obtener data del user");
+          alert("Ocurrio un error al obtener data de user");
         }
       }
     } else {

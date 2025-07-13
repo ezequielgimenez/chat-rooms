@@ -67,7 +67,7 @@ export const authToken = async (req: Request, res: Response) => {
       });
     }
   } catch (error) {
-    return res.status(500).json({ success: true, message: error.message });
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 

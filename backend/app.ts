@@ -21,7 +21,7 @@ mongoose.set("strictQuery", false);
 mongoose.Promise = global.Promise;
 
 mongoose
-  .connect("mongodb+srv://ezequiel:123456789xd@cluster0.gtudalp.mongodb.net/")
+  .connect(url)
   .then(() => console.log("Conectado a la base de datos"))
   .catch((error) => console.log(error));
 
